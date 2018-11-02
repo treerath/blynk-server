@@ -96,7 +96,7 @@ public final class MobileGetEnhancedGraphDataLogic {
             if (targetIdUpdated < Tag.START_TAG_ID) {
                 target = dash.getDeviceById(targetIdUpdated);
             } else if (targetIdUpdated < DeviceSelector.DEVICE_SELECTOR_STARTING_ID) {
-                target = dash.getTagById(targetIdUpdated);
+                target = state.user.profile.getTagById(targetIdUpdated);
             } else {
                 target = dash.getDeviceSelector(targetIdUpdated);
             }

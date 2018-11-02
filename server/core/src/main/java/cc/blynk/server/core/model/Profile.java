@@ -36,6 +36,7 @@ import java.util.Map;
 import static cc.blynk.server.core.model.widgets.MobileSyncWidget.ANY_TARGET;
 import static cc.blynk.server.internal.EmptyArraysUtil.EMPTY_APPS;
 import static cc.blynk.server.internal.EmptyArraysUtil.EMPTY_DASHBOARDS;
+import static cc.blynk.server.internal.EmptyArraysUtil.EMPTY_TAGS;
 
 /**
  * User: ddumanskiy
@@ -48,10 +49,45 @@ public class Profile {
 
     public volatile App[] apps = EMPTY_APPS;
 
+    public volatile Tag[] tags = EMPTY_TAGS;
+
     @JsonView(View.Private.class)
     @JsonDeserialize(keyUsing = DashPinStorageKeyDeserializer.class,
                      contentUsing = PinStorageValueDeserializer.class)
     public final Map<DashPinStorageKey, PinStorageValue> pinsStorage = new HashMap<>();
+
+    public void deleteTag(int tagId) {
+        int existingTagIndex = getTagIndexByIdOrThrow(tagId);
+        this.tags = ArrayUtil.remove(this.tags, existingTagIndex, Tag.class);
+    }
+
+    public void addTag(Tag newTag) {
+        this.tags = ArrayUtil.add(tags, newTag, Tag.class);
+    }
+
+    public int getTagIndexByIdOrThrow(int id) {
+        for (int i = 0; i < tags.length; i++) {
+            if (tags[i].id == id) {
+                return i;
+            }
+        }
+        throw new IllegalCommandException("Tag with passed id not found.");
+    }
+
+    public Tag getTagById(int id) {
+        for (Tag tag : tags) {
+            if (tag.id == id) {
+                return tag;
+            }
+        }
+        return null;
+    }
+
+    public void deleteDeviceFromTags(int deviceId) {
+        for (Tag tag : tags) {
+            tag.deleteDevice(deviceId);
+        }
+    }
 
     public void cleanPinStorage(DashBoard dash, Widget widget, boolean removeTemplates) {
         cleanPinStorageInternalWithoutUpdatedAt(dash, widget, true, removeTemplates);
@@ -99,7 +135,7 @@ public class Profile {
         if (targetId < Tag.START_TAG_ID) {
             target = dash.getDeviceById(targetId);
         } else if (targetId < DeviceSelector.DEVICE_SELECTOR_STARTING_ID) {
-            target = dash.getTagById(targetId);
+            target = getTagById(targetId);
         } else {
             //means widget assigned to device selector widget.
             target = dash.getDeviceSelector(targetId);
@@ -271,7 +307,7 @@ public class Profile {
                 if (graphTargetId < Tag.START_TAG_ID) {
                     target = dash.getDeviceById(graphTargetId);
                 } else if (graphTargetId < DeviceSelector.DEVICE_SELECTOR_STARTING_ID) {
-                    target = dash.getTagById(graphTargetId);
+                    target = getTagById(graphTargetId);
                 } else {
                     //means widget assigned to device selector widget.
                     target = dash.getDeviceSelector(graphTargetId);

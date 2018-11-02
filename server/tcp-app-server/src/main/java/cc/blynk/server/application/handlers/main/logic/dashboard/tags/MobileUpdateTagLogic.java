@@ -1,6 +1,5 @@
 package cc.blynk.server.application.handlers.main.logic.dashboard.tags;
 
-import cc.blynk.server.core.model.DashBoard;
 import cc.blynk.server.core.model.auth.User;
 import cc.blynk.server.core.model.device.Tag;
 import cc.blynk.server.core.model.serialization.JsonParser;
@@ -39,8 +38,6 @@ public final class MobileUpdateTagLogic {
             throw new IllegalCommandException("Income tag message is empty.");
         }
 
-        DashBoard dash = user.profile.getDashByIdOrThrow(dashId);
-
         Tag newTag = JsonParser.parseTag(tagString, message.id);
 
         log.debug("Updating new tag {}.", tagString);
@@ -49,15 +46,14 @@ public final class MobileUpdateTagLogic {
             throw new IllegalCommandException("Income tag name is not valid.");
         }
 
-        Tag existingTag = dash.getTagById(newTag.id);
+        Tag existingTag = user.profile.getTagById(newTag.id);
 
         if (existingTag == null) {
             throw new IllegalCommandException("Attempt to update tag with non existing id.");
         }
 
         existingTag.update(newTag);
-        dash.updatedAt = System.currentTimeMillis();
-        user.lastModifiedTs = dash.updatedAt;
+        user.lastModifiedTs = System.currentTimeMillis();
 
         ctx.writeAndFlush(ok(message.id), ctx.voidPromise());
     }

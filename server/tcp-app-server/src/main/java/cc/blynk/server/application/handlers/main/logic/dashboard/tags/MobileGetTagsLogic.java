@@ -24,7 +24,7 @@ public final class MobileGetTagsLogic {
 
         DashBoard dash = user.profile.getDashByIdOrThrow(dashId);
 
-        String response = JsonParser.toJson(dash.tags);
+        String response = JsonParser.toJson(user.profile.tags);
         if (response == null) {
             response = "[]";
         }
